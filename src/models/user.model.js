@@ -66,10 +66,9 @@ const userSchema = new Schema(
 );
 
 //we will attach both hooks and methods to Schema itself using mongoose!
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next(); //since the function will run everytime we save, we want to make sure we want to encrypt only when password is modified!.
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return; //since the function will run everytime we save, we want to make sure we want to encrypt only when password is modified!.
   this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {

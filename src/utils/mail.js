@@ -57,37 +57,37 @@ const sendEmail = async (options) => {
       link: "https://taskmanagerlink.com",
     },
   });
+
+  const emailTextual = mailGenerator.generatePlaintext(options.mailgenContent);
+
+  const emailHtml = mailGenerator.generatePlaintext(options.mailgenContent);
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.MAILTRAP_SMTP_HOST,
+    port: process.env.MAILTRAP_SMTP_PORT,
+    auth: {
+      user: process.env.MAILTRAP_SMTP_USER,
+      pass: process.env.MAILTRAP_SMTP_PASS,
+    },
+  });
+
+  const mail = {
+    from: "devsrivastava080405@gmail.com",
+    to: options.email,
+    subject: options.subject,
+    text: emailTextual,
+    html: emailHtml,
+  };
+
+  try {
+    await transporter.sendMail(mail);
+  } catch (error) {
+    console.error(
+      "Email service failed silently, make sure you have provided your MAILTRAP credentials in the .env file!",
+    );
+    console.error(error);
+  }
 };
-
-const emailTextual = mailGenerator.generatePlaintext(options.mailgenContent);
-
-const emailHtml = mailGenerator.generatePlaintext(options.mailgenContent);
-
-const transporter = nodemailer.createTransport({
-  host: process.env.MAILTRAP_SMTP_HOST,
-  port: process.env.MAILTRAP_SMTP_PORT,
-  auth: {
-    user: process.env.MAILTRAP_SMTP_USER,
-    pass: process.env.MAILTRAP_SMTP_PASS,
-  },
-});
-
-const mail = {
-  from: "devsrivastava080405@gmail.com",
-  to: options.email,
-  subject: options.subject,
-  text: emailTextual,
-  html: emailHtml,
-};
-
-try {
-  await transporter.sendMail(mail);
-} catch (error) {
-  console.error(
-    "Email service failed silently, make sure you have provided your MAILTRAP credentials in the .env file!",
-  );
-  console.error(error);
-}
 export {
   emailVerificationfromMailgenContent,
   forgotPasswordMailgenContent,

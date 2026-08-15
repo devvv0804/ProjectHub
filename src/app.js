@@ -20,8 +20,10 @@ app.use(
 
 //import the routes
 import healthCheckRouter from "./routes/healthCheck.routes.js";
-
+import authRouter from "./routes/auth.routes.js";
 app.use("/api/v1/healthcheck", healthCheckRouter);
+
+app.use("/api/v1/auth", authRouter);
 
 app.get("/", (req, res) => {
   res.send("Welcome to base campy!");
