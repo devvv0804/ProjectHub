@@ -1,5 +1,5 @@
 import { validationResult } from "express-validator";
-import { ApiError } from "../utils/apiError.js";
+import { ApiError } from "../utils/api-error.js";
 
 //this file can be copy pasted in any project
 

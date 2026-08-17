@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 const app = express();
 
 export default app;
@@ -8,6 +9,7 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public")); // so that we can use Public folder to display static items!
 
+app.use(cookieParser()); //gives access to cookies to express!
 //cors configuration
 app.use(
   cors({

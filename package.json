@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -32,6 +33,7 @@
   },
   "allowScripts": {
     "nodemailer@9.0.5": true,
-    "express-validator@7.3.2": true
+    "express-validator@7.3.2": true,
+    "cookie-parser@1.4.7": true
   }
 }
