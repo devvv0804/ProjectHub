@@ -25,6 +25,12 @@ import healthCheckRouter from "./routes/healthCheck.routes.js";
 import authRouter from "./routes/auth.routes.js";
 app.use("/api/v1/healthcheck", healthCheckRouter);
 
+app.use((req, res, next) => {
+  console.log("BODY:", req.body);
+  console.log("URL:", req.originalUrl);
+  console.log("CONTENT-TYPE:", req.headers["content-type"]);
+  next();
+});
 app.use("/api/v1/auth", authRouter);
 
 app.get("/", (req, res) => {

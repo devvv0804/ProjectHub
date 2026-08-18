@@ -9,6 +9,7 @@ import {
 } from "../utils/mail.js";
 import { cookie } from "express-validator";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -162,9 +163,9 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
 //we can access the url using req.params
 const verifyEmail = asyncHandler(async (req, res) => {
-  const { verficationToken } = req.params;
+  const { verificationToken } = req.params;
 
-  if (!verficationToken)
+  if (!verificationToken)
     throw new ApiError(400, "Email verification token is missing");
 
   let hashedToken = crypto //since we send unhashed token in mail, we need to hash it again and then match it with existing database hashed token!
@@ -233,9 +234,9 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incommingRefreshToken =
-    req.cookie.refreshToken || req.body.refreshToken;
+    req.cookies?.refreshToken || req.body.refreshToken; //take care its cookies not cookie
 
-  if (!refreshAccessToken) throw new ApiError(401, "Unauthorized Access");
+  if (!incommingRefreshToken) throw new ApiError(401, "Unauthorized Access");
 
   try {
     const decodedToken = jwt.verify(
@@ -275,8 +276,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         ),
       );
   } catch (error) {
-    throw new ApiError(401, "Invalid Refresh Token!");
     console.log(error);
+    throw new ApiError(401, "Invalid Refresh Token!");
   }
 });
 
@@ -291,7 +292,7 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   const { unHashedToken, hashedToken, tokenExpiry } =
     user.generateTemporaryToken();
 
-  use.forgotPasswordToken = hashedToken;
+  user.forgotPasswordToken = hashedToken;
   user.forgotPasswordExpiry = tokenExpiry;
 
   await user.save({ validateBeforeSave: false });
@@ -309,9 +310,11 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse() * 200,
-      {},
-      "Password Reset Mail has been sent on your mail id!",
+      new ApiResponse(
+        200,
+        {},
+        "Password Reset Mail has been sent on your mail id!",
+      ),
     );
 });
 
@@ -360,6 +363,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, {}, "Password Changed Successfully!"));
 });
+
 export {
   registerUser,
   login,
@@ -370,4 +374,5 @@ export {
   forgotPasswordRequest,
   changeCurrentPassword,
   resetForgotPassword,
+  refreshAccessToken,
 };
