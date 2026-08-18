@@ -100,7 +100,7 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
-//temp tokens
+//temp tokens(use for passsword reset etc)
 userSchema.methods.generateTemporaryToken = function () {
   const unHashedToken = crypto.randomBytes(20).toString("hex");
 

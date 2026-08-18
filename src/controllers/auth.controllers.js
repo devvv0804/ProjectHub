@@ -4,6 +4,7 @@ import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async handeler.js";
 import {
   emailVerificationfromMailgenContent,
+  forgotPasswordMailgenContent,
   sendEmail,
 } from "../utils/mail.js";
 import { cookie } from "express-validator";
@@ -279,7 +280,86 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-// const getCurrentUser= asyncHandler(async (req,res)=>{})
+const forgotPasswordRequest = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(404, "User does not exist", []);
+  }
+
+  const { unHashedToken, hashedToken, tokenExpiry } =
+    user.generateTemporaryToken();
+
+  use.forgotPasswordToken = hashedToken;
+  user.forgotPasswordExpiry = tokenExpiry;
+
+  await user.save({ validateBeforeSave: false });
+
+  await sendEmail({
+    //we send unhashed token in mail as it goes to user!
+    email: user?.email,
+    subject: "Password reset request",
+    mailgenContent: forgotPasswordMailgenContent(
+      user.username,
+      `${process.env.FORGOT_PASSWORD_REDIRECT_URL}/${unHashedToken}`,
+    ),
+  });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse() * 200,
+      {},
+      "Password Reset Mail has been sent on your mail id!",
+    );
+});
+
+const resetForgotPassword = asyncHandler(async (req, res) => {
+  const { resetToken } = req.params;
+  const { newPassword } = req.body;
+
+  let hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  const user = await User.findOne({
+    forgotPasswordToken: hashedToken,
+    forgotPasswordExpiry: { $gt: Date.now() },
+  });
+
+  if (!user) throw new ApiError(489, "Token is invalid or Expired!");
+
+  user.forgotPasswordExpiry = undefined; //cleanup
+  user.forgotPasswordToken = undefined;
+
+  user.password = newPassword; //we don't need to worry about hashing UserScema.pre function will take care of it in user.model.js
+
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password Reset Successfully!"));
+});
+
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findOne(req.user?._id);
+  if (!user) throw new ApiError(400, "No User Found");
+
+  const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordValid) throw new ApiError(400, "Invalid old Password");
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password Changed Successfully!"));
+});
 export {
   registerUser,
   login,
@@ -287,4 +367,7 @@ export {
   getCurrentUser,
   verifyEmail,
   resendEmailVerification,
+  forgotPasswordRequest,
+  changeCurrentPassword,
+  resetForgotPassword,
 };
