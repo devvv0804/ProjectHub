@@ -1,110 +1,122 @@
 # 🚀 ProjectHub Backend
 
-> A backend API for a collaborative project management platform, built with Node.js, Express.js, MongoDB, and JWT-based authentication.
+> A RESTful backend API for a collaborative project management platform built with Node.js, Express.js, MongoDB, Mongoose, and JWT-based authentication.
 
 ## 📌 About
 
-**ProjectCamp** is a RESTful backend application designed to support collaborative project management.
+**ProjectHub** is a backend application for collaborative project management.
 
-The planned platform will allow users to create and manage projects, collaborate with team members, organize tasks and subtasks, maintain project notes, and securely access resources through role-based permissions.
+The system is being developed incrementally with a focus on learning and implementing real-world backend engineering concepts such as:
 
-The project is being developed with a focus on building a **structured, maintainable, and production-oriented backend architecture** rather than simply creating basic CRUD APIs.
+* REST API design
+* Authentication and authorization
+* MongoDB data modeling
+* Mongoose relationships
+* Middleware
+* Request validation
+* Centralized error handling
+* Project and team management
+* Role-based access control
+* Task and subtask management
+* Project notes
+* Secure email workflows
 
-### Current focus
-
-The authentication and request-validation layer has been implemented, while project, task, and collaboration functionality is being developed incrementally.
+The project follows a modular architecture where models, controllers, routes, validators, middleware, and utilities are separated into dedicated modules.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Technology            | Purpose                           |
-| --------------------- | --------------------------------- |
-| **Node.js**           | JavaScript runtime                |
-| **Express.js 5**      | REST API framework                |
-| **MongoDB**           | Database                          |
-| **Mongoose**          | MongoDB ODM                       |
-| **JWT**               | Authentication & token management |
-| **bcrypt**            | Password hashing                  |
-| **Express Validator** | Request validation                |
-| **Nodemailer**        | Email delivery                    |
-| **Mailgen**           | Email template generation         |
-| **Cookie Parser**     | Cookie handling                   |
-| **CORS**              | Cross-origin request handling     |
-| **dotenv**            | Environment configuration         |
-| **Nodemon**           | Development workflow              |
+| Technology            | Purpose                             |
+| --------------------- | ----------------------------------- |
+| **Node.js**           | JavaScript runtime                  |
+| **Express.js 5**      | REST API framework                  |
+| **MongoDB**           | Database                            |
+| **Mongoose**          | MongoDB ODM and schema modeling     |
+| **JWT**               | Authentication and token management |
+| **bcrypt**            | Password hashing                    |
+| **Express Validator** | Request validation                  |
+| **Nodemailer**        | Email delivery                      |
+| **Mailgen**           | Email template generation           |
+| **Cookie Parser**     | Cookie handling                     |
+| **CORS**              | Cross-origin request handling       |
+| **dotenv**            | Environment configuration           |
+| **Nodemon**           | Development workflow                |
+| **Prettier**          | Code formatting                     |
+
+The current project configuration uses ES modules and runs from `src/index.js`.
 
 ---
 
-## ✨ Current Features
+# ✨ Current Features
 
-### 🔐 Authentication
+## 🔐 Authentication
 
-The authentication layer currently includes:
+The authentication system includes:
 
-- User registration architecture
-- User login architecture
-- JWT access token generation
-- JWT refresh token generation
-- Password hashing using bcrypt
-- Password verification
-- Protected routes using JWT middleware
-- Logout route
-- Current-user route
-- Change-password route
-- Email verification workflow
-- Forgot-password workflow
-- Reset-password workflow
-- Resend email verification
-- Temporary token generation using cryptographically secure random values
-- Hashed temporary tokens using SHA-256
-- Token expiration handling
+* User registration
+* User login
+* JWT access token generation
+* JWT refresh token generation
+* Password hashing using bcrypt
+* Password verification
+* Protected routes using authentication middleware
+* Logout
+* Current-user retrieval
+* Password change
+* Email verification
+* Forgot-password workflow
+* Reset-password workflow
+* Resending email verification
+* Temporary token generation
+* SHA-256 hashing of temporary tokens
+* Token expiration handling
 
 ---
 
-### ✅ Request Validation
+## ✅ Request Validation
 
-Input validation is implemented using **Express Validator**.
+Request validation is implemented using **Express Validator**.
+
+Validation is separated from controllers using reusable validator functions and centralized validation middleware.
 
 Current validation includes:
 
-- Email format validation
-- Required-field validation
-- Username validation
-- Username lowercase validation
-- Username length validation
-- Password validation
-- Password-change validation
-- Forgot-password validation
-- Reset-password validation
+* Email validation
+* Required fields
+* Username validation
+* Username lowercase enforcement
+* Username length validation
+* Password validation
+* Password-change validation
+* Forgot-password validation
+* Reset-password validation
 
-Validation is separated from controllers using reusable validator functions and a centralized validation middleware.
-
-Example architecture:
+### Request Flow
 
 ```text
-Request
-   ↓
-Validator
-   ↓
+Client Request
+      ↓
+   Validator
+      ↓
 Validation Middleware
-   ↓
-Controller
-   ↓
-Database
-   ↓
-API Response
+      ↓
+   Controller
+      ↓
+   Database
+      ↓
+ API Response
 ```
 
 ---
 
-## 🔑 Authentication Architecture
+# 🔑 Authentication Architecture
 
-ProjectCamp uses a **dual-token JWT authentication system**.
+ProjectHub uses a dual-token JWT authentication architecture.
 
 ### Access Token
 
-The access token contains basic user information:
+The access token contains basic user information such as:
 
 ```text
 _id
@@ -112,13 +124,13 @@ email
 username
 ```
 
-and is signed using a dedicated access-token secret and expiration time.
+The token is signed using a dedicated access-token secret and expiration configuration.
 
 ### Refresh Token
 
 The refresh token contains the user's `_id` and uses a separate secret and expiration configuration.
 
-This separation allows short-lived access credentials to be renewed without requiring the user to log in again.
+This allows the application to issue a new access token without requiring the user to authenticate again.
 
 ```text
 User Login
@@ -143,86 +155,84 @@ Generate Refresh Token
                   Refresh Token
                          │
                          ▼
-                 New Access Token
+                Generate New Access Token
 ```
 
 ---
 
-## 🔒 Password Security
+# 🔒 Password Security
 
-Passwords are never stored directly.
-
-Before saving a user:
+Passwords are never stored directly in the database.
 
 ```text
 Plain Password
       ↓
-bcrypt
+    bcrypt
       ↓
-Hashed Password
+Password Hash
       ↓
-MongoDB
+   MongoDB
 ```
 
-When authenticating:
+During authentication:
 
 ```text
 Entered Password
       ↓
 bcrypt.compare()
       ↓
-Stored Hash
+Stored Password Hash
       ↓
 Authentication Result
 ```
 
-The password hashing logic is implemented using a Mongoose `pre("save")` hook so passwords are automatically hashed when created or modified.
+Password hashing is handled through a Mongoose `pre("save")` hook.
 
 ---
 
-## 🔐 Temporary Token Security
+# 🔐 Temporary Token Security
 
 Temporary tokens are used for workflows such as:
 
-- Email verification
-- Password reset
+* Email verification
+* Password reset
 
-The application generates a cryptographically secure random token and stores only its SHA-256 hash.
+The application generates a secure random token and stores a hashed representation.
 
 ```text
-Random Token
-     ↓
-SHA-256 Hash
-     ↓
-Database
+Secure Random Token
+        ↓
+     SHA-256
+        ↓
+  Hashed Token
+        ↓
+     MongoDB
 ```
 
-The original token is sent to the user through the email link.
+The original token is sent to the user through the appropriate email link.
 
-Temporary tokens also have an expiration time to reduce the risk of misuse.
+Temporary tokens also have expiration handling to limit their lifetime.
 
 ---
 
-## 📧 Email System
+# 📧 Email System
 
-Email functionality is implemented using:
+Email functionality uses:
 
-- **Nodemailer** for sending emails
-- **Mailgen** for generating email content
-
-Current email workflows include:
+* **Nodemailer** for sending emails
+* **Mailgen** for generating email content
 
 ### Email Verification
 
 ```text
-Registration
-     ↓
+User Registration
+       ↓
 Generate Verification Token
-     ↓
+       ↓
 Generate Verification URL
-     ↓
+       ↓
 Send Email
-     ↓
+       ↓
 User Verifies Account
 ```
 
@@ -230,27 +240,261 @@ User Verifies Account
 
 ```text
 Forgot Password
-     ↓
+       ↓
 Generate Temporary Token
-     ↓
+       ↓
 Generate Reset URL
-     ↓
+       ↓
 Send Email
-     ↓
+       ↓
 User Resets Password
 ```
 
-The application is currently configured for development/testing email infrastructure and can later be connected to a production email provider.
+---
+
+# 📁 Project Architecture
+
+The backend follows a modular structure:
+
+```text
+ProjectHub/
+│
+├── src/
+│   │
+│   ├── controllers/
+│   │   ├── auth.controllers.js
+│   │   ├── healthcheck.controller.js
+│   │   └── project.controller.js
+│   │
+│   ├── db/
+│   │
+│   ├── middlewares/
+│   │
+│   ├── models/
+│   │   ├── user.model.js
+│   │   ├── project.models.js
+│   │   ├── projectmember.models.js
+│   │   ├── tasks.models.js
+│   │   ├── subtask.models.js
+│   │   └── note.models.js
+│   │
+│   ├── routes/
+│   │   ├── auth.routes.js
+│   │   └── healthCheck.routes.js
+│   │
+│   ├── utils/
+│   │
+│   ├── validators/
+│   │
+│   ├── app.js
+│   └── index.js
+│
+├── PRD.md
+├── package.json
+├── package-lock.json
+└── README.md
+```
+
+The repository currently separates controllers, database code, middleware, models, routes, utilities, and validators under `src`.
 
 ---
 
-## 🛡️ Error & Response Handling
+# 📂 Database Models
 
-ProjectCamp uses standardized API response and error classes.
+The current backend contains the following major Mongoose models:
 
-### `ApiError`
+## User
 
-Provides a consistent structure for application errors:
+Stores user account information and authentication-related data.
+
+```text
+User
+```
+
+---
+
+## Project
+
+Represents a collaborative project.
+
+```text
+Project
+├── name
+├── description
+└── createdBy → User
+```
+
+Each project records the user who created it.
+
+---
+
+## ProjectMember
+
+Connects users with projects and stores their project-specific role.
+
+```text
+ProjectMember
+├── user → User
+├── project → Project
+└── role
+```
+
+This acts as a relationship/bridge collection between users and projects.
+
+Conceptually:
+
+```text
+User
+  │
+  │
+  ▼
+ProjectMember
+  │
+  │
+  ▼
+Project
+```
+
+This allows a user to participate in multiple projects and a project to contain multiple users.
+
+---
+
+## Task
+
+Tasks belong to projects and can optionally be assigned to users.
+
+```text
+Task
+├── title
+├── description
+├── project → Project
+├── assignedTo → User
+├── assignedBy → User
+├── status
+└── attachments
+```
+
+---
+
+## SubTask
+
+Subtasks belong to a parent task.
+
+```text
+SubTask
+├── title
+├── task → Task
+├── isCompleted
+└── createdBy → User
+```
+
+Relationship:
+
+```text
+Project
+   ↓
+ Task
+   ↓
+SubTask
+```
+
+---
+
+## Project Note
+
+Project notes belong to a project and contain textual content.
+
+```text
+Project
+   ↓
+Project Note
+   └── content
+```
+
+---
+
+# 👥 Project Management
+
+Project management functionality has now moved beyond the schema stage.
+
+The project controller currently handles operations including:
+
+* Creating projects
+* Listing projects available to the authenticated user
+* Fetching an individual project
+* Updating project information
+* Deleting projects
+* Adding users to projects
+* Listing project members
+* Updating member roles
+* Removing project members
+
+The project listing logic also uses MongoDB aggregation to retrieve projects associated with the current user and calculate project member counts.
+
+### Project Membership
+
+```text
+User
+  │
+  ├──────────────┐
+  │              │
+  ▼              ▼
+Project 1      Project 2
+  │
+  ├── Member A
+  ├── Member B
+  └── Member C
+```
+
+---
+
+# 👤 Role-Based Access Control
+
+The project architecture defines three primary roles:
+
+| Role            | Purpose                                    |
+| --------------- | ------------------------------------------ |
+| `admin`         | System/project-level administrative access |
+| `project_admin` | Administrative access within a project     |
+| `member`        | Basic project access                       |
+
+Roles are stored in the `ProjectMember` relationship rather than directly on the project itself.
+
+This allows a user to have different roles across different projects.
+
+For example:
+
+```text
+User A
+│
+├── Project 1 → admin
+├── Project 2 → project_admin
+└── Project 3 → member
+```
+
+---
+
+# 📋 Task Status
+
+The task architecture uses a predefined status system:
+
+```text
+todo
+in_progress
+done
+```
+
+These values are maintained through reusable application constants to prevent inconsistent status values.
+
+---
+
+# 🛡️ Error & Response Handling
+
+ProjectHub uses standardized response and error classes.
+
+## ApiError
+
+Application errors follow a consistent structure:
 
 ```json
 {
@@ -261,9 +505,9 @@ Provides a consistent structure for application errors:
 }
 ```
 
-### `ApiResponse`
+## ApiResponse
 
-Provides a standardized successful response structure:
+Successful responses follow a consistent structure:
 
 ```json
 {
@@ -274,13 +518,13 @@ Provides a standardized successful response structure:
 }
 ```
 
-This keeps API responses consistent across different controllers.
+This provides a consistent API response format across controllers.
 
 ---
 
-## ⚡ Async Error Handling
+# ⚡ Async Error Handling
 
-Asynchronous controller functions are wrapped using a reusable `asyncHandler`.
+Asynchronous controllers are wrapped using a reusable `asyncHandler`.
 
 Instead of repeatedly writing:
 
@@ -292,41 +536,13 @@ try {
 }
 ```
 
-controllers can be wrapped and automatically forward rejected promises to Express's error-handling pipeline.
+controllers can be wrapped using `asyncHandler`, allowing rejected promises to be forwarded to Express's centralized error-handling pipeline.
 
 ---
 
-## 👥 Planned Role-Based Access Control
+# 🔌 API Routes
 
-The application architecture includes three planned user roles:
-
-| Role            | Description                           |
-| --------------- | ------------------------------------- |
-| `admin`         | Full system-level access              |
-| `project_admin` | Administrative access within projects |
-| `member`        | Basic project access                  |
-
-The role constants have already been defined and will be used as project-management functionality is implemented.
-
----
-
-## 📋 Planned Task Status
-
-Tasks will use the following status system:
-
-```text
-todo
-in_progress
-done
-```
-
-These values are already defined as reusable application constants to prevent inconsistent status values throughout the application.
-
----
-
-## 🔌 Current API Routes
-
-### Authentication
+## Authentication
 
 Base URL:
 
@@ -347,7 +563,9 @@ Base URL:
 | POST   | `/reset-password/:resetToken`      | Reset password            |
 | POST   | `/resend-email-verification`       | Resend verification email |
 
-### Health Check
+## Health Check
+
+Base URL:
 
 ```text
 /api/v1/healthcheck
@@ -359,67 +577,113 @@ Base URL:
 
 ---
 
-## 📈 Development Roadmap
+# 🚧 Development Status
+
+The project is being developed incrementally.
 
 ### Authentication
 
-- [x] User schema
-- [x] Password hashing
-- [x] Password verification
-- [x] JWT access-token generation
-- [x] JWT refresh-token generation
-- [x] Request validation
-- [x] Authentication route structure
-- [x] Temporary token generation
-- [x] Email service architecture
-- [ ] Complete authentication workflows
-- [ ] Complete email verification workflow
-- [ ] Complete password reset workflow
+* [x] User schema
+* [x] Password hashing
+* [x] Password verification
+* [x] JWT access-token generation
+* [x] JWT refresh-token generation
+* [x] Request validation
+* [x] Authentication route structure
+* [x] Temporary token generation
+* [x] Email service architecture
+* [x] Email verification architecture
+* [x] Password reset architecture
 
 ### Project Management
 
-- [ ] Project schema
-- [ ] Project CRUD
-- [ ] Project membership
-- [ ] Member role management
-- [ ] Role-based authorization
+* [x] Project schema
+* [x] Project controller
+* [x] Project creation
+* [x] Project listing
+* [x] Project details
+* [x] Project update
+* [x] Project deletion
+* [x] Project membership model
+* [x] Add project members
+* [x] List project members
+* [x] Update member roles
+* [x] Remove project members
+* [ ] Complete role-based authorization middleware
 
 ### Task Management
 
-- [ ] Task schema
-- [ ] Task CRUD
-- [ ] Task assignment
-- [ ] Task status management
-- [ ] Subtask management
-- [ ] File attachments
+* [x] Task schema
+* [x] Task status architecture
+* [x] Task assignment fields
+* [x] File attachment schema
+* [ ] Task controller
+* [ ] Task CRUD
+* [ ] Task assignment workflow
+* [ ] Task status management
+* [ ] Subtask controller
+* [ ] Subtask CRUD
 
 ### Project Notes
 
-- [ ] Note schema
-- [ ] Note CRUD
-- [ ] Note authorization
+* [x] Note schema
+* [ ] Note controller
+* [ ] Note CRUD
+* [ ] Note authorization
 
 ### Quality & Deployment
 
-- [ ] API testing
-- [ ] API documentation
-- [ ] Pagination
-- [ ] Filtering/search
-- [ ] Rate limiting
-- [ ] Dockerization
-- [ ] CI/CD
-- [ ] Production deployment
+* [ ] API testing
+* [ ] API documentation
+* [ ] Pagination
+* [ ] Filtering and search
+* [ ] Rate limiting
+* [ ] Dockerization
+* [ ] CI/CD
+* [ ] Production deployment
 
 ---
 
-## 🎯 Project Goals
+# 🗺️ Development Roadmap
 
-The goal of ProjectCamp is to build practical experience with backend engineering concepts used in real-world applications:
+```text
+Authentication
+      ↓
+Project Management
+      ↓
+Project Membership
+      ↓
+Role-Based Authorization
+      ↓
+Task Management
+      ↓
+Subtask Management
+      ↓
+Project Notes
+      ↓
+Testing
+      ↓
+API Documentation
+      ↓
+Deployment
+```
+
+The next major development stage is to build the task, subtask, and project-note controllers and connect them to their respective routes.
+
+---
+
+# 🎯 Project Goals
+
+ProjectHub is being developed as a practical backend engineering project focused on understanding how production-oriented APIs are structured.
+
+The main learning goals are:
 
 ```text
 REST API Design
        ↓
 Database Modeling
+       ↓
+MongoDB Aggregation
        ↓
 Authentication
        ↓
@@ -431,11 +695,16 @@ Middleware
        ↓
 Error Handling
        ↓
-Email Services
+Project Collaboration
+       ↓
+Task Management
        ↓
 Testing
        ↓
 Deployment
 ```
 
+The goal is not simply to implement CRUD operations, but to understand how the different backend components work together to create a maintainable application.
+
 ---
+
