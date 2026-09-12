@@ -23,7 +23,11 @@ app.use(
 //import the routes
 import healthCheckRouter from "./routes/healthCheck.routes.js";
 import authRouter from "./routes/auth.routes.js";
+import projectRouter from "./routes/project.routes.js";
+
 app.use("/api/v1/healthcheck", healthCheckRouter);
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/projects", projectRouter);
 
 app.use((req, res, next) => {
   console.log("BODY:", req.body);
@@ -31,7 +35,6 @@ app.use((req, res, next) => {
   console.log("CONTENT-TYPE:", req.headers["content-type"]);
   next();
 });
-app.use("/api/v1/auth", authRouter);
 
 app.get("/", (req, res) => {
   res.send("Welcome to base campy!");

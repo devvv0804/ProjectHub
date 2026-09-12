@@ -19,6 +19,7 @@
     "prettier": "3.9.6"
   },
   "dependencies": {
+    "approve": "^0.0.12",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -29,7 +30,9 @@
     "mailgen": "^2.0.36",
     "mongodb": "^7.5.0",
     "mongoose": "^9.9.2",
-    "nodemailer": "^9.0.5"
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.5",
+    "scripts": "^0.1.0"
   },
   "allowScripts": {
     "nodemailer@9.0.5": true,
