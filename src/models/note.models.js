@@ -15,4 +15,6 @@ const projectNoteSchema = new Schema(
   { timestamps: true },
 );
 
-export const projectNode = mongoose.model("ProjectNote", projectNoteSchema);
+//renamed from the previous `projectNode` (typo) to `ProjectNote` so the
+//export name matches the model name used by note.controller.js
+export const ProjectNote = mongoose.model("ProjectNote", projectNoteSchema);

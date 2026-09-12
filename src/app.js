@@ -24,10 +24,14 @@ app.use(
 import healthCheckRouter from "./routes/healthCheck.routes.js";
 import authRouter from "./routes/auth.routes.js";
 import projectRouter from "./routes/project.routes.js";
+import taskRouter from "./routes/task.routes.js";
+import noteRouter from "./routes/note.routes.js";
 
 app.use("/api/v1/healthcheck", healthCheckRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/projects", projectRouter);
+app.use("/api/v1/tasks", taskRouter);
+app.use("/api/v1/notes", noteRouter);
 
 app.use((req, res, next) => {
   console.log("BODY:", req.body);

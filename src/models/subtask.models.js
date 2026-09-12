@@ -22,7 +22,7 @@ const subTaskSchema = new Schema(
       required: true,
     },
   },
-  { timestamps: "true" },
+  { timestamps: true }, //bug fix: was `timestamps: "true"` (a string, not a boolean) — crashes on newer mongoose
 );
 
 export const subTask = mongoose.model("subTask", subTaskSchema);

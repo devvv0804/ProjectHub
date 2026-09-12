@@ -14,13 +14,16 @@ export const getTasks = asyncHandler(async (req, res) => {
   const project = await Project.findById(projectId);
   if (!project) throw new ApiError(404, "Project not found!");
 
-  const tasks = await Task.find(
-    (project = new mongoose.Types.ObjectId(projectId)),
-  ).populate("assignedTo", "avatar username fullName"); //without using agregation pipelines!;
+  //bug fix: was `Task.find((project = new mongoose.Types.ObjectId(projectId)))`
+  //that reassigned the outer `project` variable to an ObjectId and passed it directly
+  //as the whole filter instead of `{ project: ... }`
+  const tasks = await Task.find({
+    project: new mongoose.Types.ObjectId(projectId),
+  }).populate("assignedTo", "avatar username fullName");
 
   return res
-    .status(201)
-    .json(new ApiResponse(201, tasks, "Task fetched Successfully!"));
+    .status(200)
+    .json(new ApiResponse(200, tasks, "Task fetched Successfully!"));
 });
 
 export const createTask = asyncHandler(async (req, res) => {
@@ -32,9 +35,13 @@ export const createTask = asyncHandler(async (req, res) => {
 
   const files = req.files || [];
 
-  files.map((file) => {
+  //bug fix: previous version called files.map(...) but never assigned the result
+  //anywhere, and then referenced an undefined `attachments` variable below.
+  //also `file.originalname` doesn't match the actual saved filename, since
+  //multer.middleware.js saves files as `${Date.now()}-${file.originalname}`
+  const attachments = files.map((file) => {
     return {
-      urL: `${process.env.SERVER_URL}/images/${file.originalname}`,
+      url: `${process.env.SERVER_URL}/images/${file.filename}`,
       mimetype: file.mimetype,
       size: file.size,
     };
@@ -58,11 +65,13 @@ export const createTask = asyncHandler(async (req, res) => {
 });
 
 export const getTaskById = asyncHandler(async (req, res) => {
-  const { taskId } = req.params;
+  const { projectId, taskId } = req.params;
+
   const task = await Task.aggregate([
     {
       $match: {
         _id: new mongoose.Types.ObjectId(taskId),
+        project: new mongoose.Types.ObjectId(projectId),
       },
     },
     {
@@ -73,10 +82,14 @@ export const getTaskById = asyncHandler(async (req, res) => {
         as: "assignedTo",
         pipeline: [
           {
-            _id: 1,
-            username: 1,
-            fullName: 1,
-            avatar: 1,
+            //bug fix: this was missing the `$project` operator, so it was an
+            //invalid aggregation stage (`{ _id: 1, ... }` is not a valid stage)
+            $project: {
+              _id: 1,
+              username: 1,
+              fullName: 1,
+              avatar: 1,
+            },
           },
         ],
       },
@@ -133,21 +146,51 @@ export const getTaskById = asyncHandler(async (req, res) => {
 });
 
 export const updateTask = asyncHandler(async (req, res) => {
-  //
+  const { title, description, assignedTo, status } = req.body;
+  const { projectId, taskId } = req.params;
+
+  const task = await Task.findOne({
+    _id: taskId,
+    project: new mongoose.Types.ObjectId(projectId),
+  });
+
+  if (!task) throw new ApiError(404, "Task Not Found!");
+
+  const files = req.files || [];
+  const newAttachments = files.map((file) => ({
+    url: `${process.env.SERVER_URL}/images/${file.filename}`,
+    mimetype: file.mimetype,
+    size: file.size,
+  }));
+
+  if (title !== undefined) task.title = title;
+  if (description !== undefined) task.description = description;
+  if (status !== undefined) task.status = status;
+  if (assignedTo !== undefined)
+    task.assignedTo = new mongoose.Types.ObjectId(assignedTo);
+  if (newAttachments.length) task.attachments.push(...newAttachments);
+
+  await task.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, task, "Task Updated Successfully!"));
 });
 
 export const deleteTask = asyncHandler(async (req, res) => {
-  //
-});
+  const { projectId, taskId } = req.params;
 
-export const createSubTask = asyncHandler(async (req, res) => {
-  //
-});
+  const task = await Task.findOneAndDelete({
+    _id: taskId,
+    project: new mongoose.Types.ObjectId(projectId),
+  });
 
-export const updateSubTask = asyncHandler(async (req, res) => {
-  //
-});
+  if (!task) throw new ApiError(404, "Task Not Found!");
 
-export const deleteSubTask = asyncHandler(async (req, res) => {
-  //
+  //cascade delete: a task's subtasks shouldn't be left orphaned
+  await subTask.deleteMany({ task: task._id });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, task, "Task Deleted Successfully!"));
 });

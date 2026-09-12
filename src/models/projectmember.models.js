@@ -20,7 +20,7 @@ const projectMemberSchema = new Schema(
       default: UserRolesEnum.MEMBER,
     },
   },
-  { timestamp: true },
+  { timestamps: true }, //bug fix: was `timestamp: true` (wrong key, silently ignored by mongoose)
 );
 
 export const ProjectMember = mongoose.model(
